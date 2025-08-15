@@ -1,0 +1,28 @@
+{<% extends "base.html" %>}
+
+{<% block content %>}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <!-- page title -->
+        {% if page_title %}
+
+        <h1 class="display-4 text-center mb-4">{{ page_title }}</h1>
+
+        {% else %}
+
+            <h1 class="display-4 text-center mb-4">📈 Stock Analysis Tool</h1>
+
+        {% endif %}
+
+        <!-- message (about page) -->
+        {% if message %}
+        <div class="alert alert-primary" role="alert">
+            <h4 class="alert-heading">ようこそ！</h4>
+            <p>{{ message }}</p>
+        </div>
+        {% endif %}
+
+        <!-- main content of home page -->
+        {% if not page_title %}
+    </div>
+</div>
