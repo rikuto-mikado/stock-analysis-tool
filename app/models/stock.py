@@ -40,7 +40,7 @@ class Stock(BaseModel):
         "PriceHistory", backref="stock", lazy=True, cascade="all, delete-orphan"
     )
     watchlist_items = db.relationship(
-        "Watchlist", backref="stock", lazy=True, cascade="all, delete-orphan"
+        "Watchlist", back_populates="stock", lazy=True, cascade="all, delete-orphan"
     )
 
     # index settings
