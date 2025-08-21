@@ -85,20 +85,89 @@ A comprehensive web-based stock analysis application built with Flask that provi
 
 ```
 stock-analysis-tool/
-├── app/                    # Main application package
-│   ├── models/            # Database models
-│   ├── routes/            # URL routes and views
-│   ├── services/          # Business logic and external APIs
-│   ├── static/            # CSS, JavaScript, images
-│   ├── templates/         # HTML templates
-│   └── utils/             # Helper functions and utilities
-├── config.py              # Configuration settings
-├── docs/                  # Documentation
-├── migrations/            # Database migrations
-├── requirements.txt       # Python dependencies
-├── scheduler/             # Background tasks
-├── scripts/               # Utility scripts
-└── tests/                 # Test suites
+├── .gitignore
+├── app.py
+├── config.py
+├── LICENSE
+├── README.md
+├── requirements.txt
+├── app/
+│   ├── __init__.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── alert.py
+│   │   ├── price_history.py
+│   │   ├── stock.py
+│   │   ├── user.py
+│   │   └── watchlist.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── main.py
+│   │   ├── search.py
+│   │   ├── stock.py
+│   │   └── watchlist.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── alert_service.py
+│   │   ├── cache_service.py
+│   │   ├── data_processor.py
+│   │   └── stock_api.py
+│   ├── static/
+│   │   ├── css/
+│   │   │   ├── components.css
+│   │   │   ├── dashboard.css
+│   │   │   └── main.css
+│   │   ├── img/
+│   │   │   └── favicon.ico
+│   │   └── js/
+│   │       ├── charts.js
+│   │       ├── main.js
+│   │       ├── search.js
+│   │       └── websocket.js
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── dashboard.html
+│   │   ├── index.html
+│   │   ├── components/
+│   │   │   ├── chart.html
+│   │   │   ├── navbar.html
+│   │   │   └── stock_card.html
+│   │   ├── errors/
+│   │   │   ├── 404.html
+│   │   │   └── 500.html
+│   │   ├── stock/
+│   │   │   ├── compare.html
+│   │   │   ├── detail.html
+│   │   │   └── search.html
+│   │   └── watchlist/
+│   │       ├── list.html
+│   │       └── manage.html
+│   └── utils/
+│       ├── __init__.py
+│       ├── formatters.py
+│       ├── helpers.py
+│       └── validators.py
+├── docs/
+│   ├── API.md
+│   ├── DEPLOYMENT.md
+│   ├── README.md
+│   └── SETUP.md
+├── instance/
+├── migrations/
+│   └── versions/
+├── scheduler/
+│   ├── scheduler.py
+│   └── tasks.py
+├── scripts/
+│   ├── backup.py
+│   ├── init_db.py
+│   └── seed_data.py
+└── tests/
+    ├── conftest.py
+    ├── test_models.py
+    ├── test_routes.py
+    └── test_services.py
 ```
 
 ## API Documentation
