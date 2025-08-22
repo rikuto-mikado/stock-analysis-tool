@@ -1,4 +1,5 @@
 import yfinance as yf
+import pandas as pd
 from datetime import datetime, timedelta
 import logging
 from typing import Dict, List, Optional, Any
@@ -18,10 +19,10 @@ class StockAPIService:
         Get comprehensive stock information
 
         Args:
-            symbol (str): Ticker symbol (e.g., 'AAPL')
+        symbol (str): Ticker symbol (e.g., 'AAPL')
 
         Returns:
-            dict: Stock information or None if error
+        dict: Stock information or None if error
         """
         try:
             ticker = yf.Ticker(symbol)
@@ -65,11 +66,11 @@ class StockAPIService:
         Get historical price data
 
         Args:
-            symbol (str): Ticker symbol
-            period (str): Period ("1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max")
+        symbol (str): Ticker symbol
+        period (str): Period ("1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max")
 
         Returns:
-            list: Historical data or None if error
+        list: Historical data or None if error
         """
         try:
             ticker = yf.Ticker(symbol)
@@ -138,17 +139,17 @@ class StockAPIService:
             ):
                 results.append(stock)
 
-        return results[:10]  # Limit to 10 results
+        return results[:10]
 
     def validate_symbol(self, symbol: str) -> bool:
         """
         Validate if a stock symbol exists
 
         Args:
-            symbol (str): Ticker symbol
+        symbol (str): Ticker symbol
 
         Returns:
-            bool: True if valid symbol
+        bool: True if valid symbol
         """
         try:
             ticker = yf.Ticker(symbol)
@@ -162,10 +163,10 @@ class StockAPIService:
         Get current quotes for multiple symbols
 
         Args:
-            symbols (list): List of ticker symbols
+        symbols (list): List of ticker symbols
 
         Returns:
-            dict: Dictionary with symbol as key and quote data as value
+        dict: Dictionary with symbol as key and quote data as value
         """
         results = {}
 
