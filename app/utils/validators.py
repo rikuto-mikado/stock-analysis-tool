@@ -107,3 +107,94 @@ def validate_date_range(start_date: str, end_date: str) -> Tuple[bool, Optional[
     Returns:
     tuple: (is_valid, error_message)
     """
+    from datetime import datetime
+
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+
+        if start > end:
+            return False, "Start date cannot be after end date"
+
+        # Check if dates are not too far in the future
+        now = datetime.now()
+        if start > now or end > now:
+            return False, "Dates cannot be in the future"
+
+        return True, None
+
+    except ValueError:
+        return False, "Invalid date format (use YYYY-MM-DD)"
+
+
+def validate_search_query(query: str) -> Tuple[bool, Optional[str]]:
+    """
+    Validate search query
+
+    Args:
+    query: Search query string
+
+    Returns:
+    tuple: (is_valid, error_message)
+    """
+    if not query:
+        return False, "Search query cannot be empty"
+
+    query = query.strip()
+
+    if len(query) < 1:
+        return False, "Search query is too short"
+
+    if len(query) > 100:
+        return False, "Search query is too long"
+
+    # Check for potentially harmful characters
+    dangerous_chars = ["<", ">", '"', "'", "&"]
+    if any(char in query for char in dangerous_chars):
+        return False, "Search query contains invalid characters"
+
+    return True, None
+
+
+def validate_watchlist_note(note: str) -> Tuple[bool, Optional[str]]:
+    """
+    Validate watchlist note
+
+    Args:
+    note: Note text
+
+    Returns:
+    tuple: (is_valid, error_message)
+    """
+    if not note:
+        return True, None  # Notes are optional
+
+    note = note.strip()
+
+    if len(note) > 500:
+        return False, "Note is too long (maximum 500 characters)"
+
+    return True, None
+
+
+def sanitize_input(input_string: str) -> str:
+    """
+    Sanitize user input for security
+
+    Args:
+    input_string: Input to sanitize
+
+    Returns:
+    str: Sanitized input
+    """
+    if not input_string:
+        return ""
+
+    # Remove potentially dangerous characters
+    dangerous_chars = ["<", ">", '"', "'", "&", ";", "(", ")", "|"]
+    sanitized = input_string
+
+    for char in dangerous_chars:
+        sanitized = sanitized.replace(char, "")
+
+    return sanitized.strip()
