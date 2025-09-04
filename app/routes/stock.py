@@ -97,4 +97,57 @@ def detail(symbol):
         in_watchlist=in_watchlist,
     )
 
-@bp.route('/api/<symbol>/refresh')
+
+@bp.route("/api/<symbol>/refresh")
+def refresh_stock_data(symbol):
+    """
+    API endpoint to refresh stock data
+
+    Args:
+    symbol (str): Stock symbol
+
+    Returns:
+    json: Updated stock information
+    """
+    # Validate symbol
+    is_valid, error_msg = validate_stock_symbol(symbol)
+    if not is_valid:
+        return jsonify({"error": error_msg}), 400
+
+    symbol = symbol.upper()
+
+    # Get fresh data from API
+    stock_info = stock_api.get_stock_info(symbol)
+
+    if not stock_info:
+        return jsonify({"error": f"Stock {symbol} not found"}), 404
+
+    # Update database if stock exists
+    stock_db = Stock.find_by_symbol(symbol)
+    if stock_db:
+        stock_db.update_price_info(
+            stock_info.get("current_price"), stock_info.get("previous_close")
+        )
+        stock_db.save()
+
+    return jsonify({"stock": stock_info})
+
+
+@bp.route("/compare")
+def compare():
+    """
+    Stock comparison page (placeholder for future implementation)
+
+    Returns:
+    str: Rendered comparison page
+    """
+    symbols = request.args.getlist("symbols")
+
+    if not symbols:
+        flash("Please select stocks to compare", "warning")
+        return redirect(url_for("search.index"))
+
+    # For now, just show a placeholder
+    return render_template(
+        "stock/compare.html", title="Stock Comparison", symbols=symbols
+    )
