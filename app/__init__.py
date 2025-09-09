@@ -91,3 +91,27 @@ def register_error_handlers(app):
 
         db.session.rollback()
         return render_template("errors/500.html"), 500
+
+
+def register_blueprints(app):
+    """
+    Register all blueprints with the Flask app
+
+    Args:
+    app: Flask application instance
+    """
+
+    # Main routes (home, about)
+    from app.routes import main
+
+    app.register_blueprint(main.bp)
+
+    # Search routes
+    from app.routes import search
+
+    app.register_blueprint(search.bp)
+
+    # Stock routes
+    from app.routes import stock
+
+    app.register_blueprint(stock.bp)
