@@ -29,7 +29,7 @@ def search_suggestions():
     Returns:
     json: List of matching stocks
     """
-    query = request.args.get("q", "").stript()
+    query = request.args.get("q", "").strip()
 
     if not query:
         return jsonify({"results": []})

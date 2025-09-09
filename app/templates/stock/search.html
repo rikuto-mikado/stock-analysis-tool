@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4">🔍 Stock Search</h1>
+            <p class="lead">Search for stocks by symbol or company name</p>
+        </div>
+
+        <!-- Search Container -->
+        <div class="search-container mb-5">
+            <div class="row">
+                <div class="col-md-10 mx-auto">
+                    <!-- Search Form -->
+                    <form id="searchForm" class="d-flex mb-4">
+                        <div class="flex-grow-1 position-relative">
+                            <input type="text" 
+                                   id="searchInput" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="Enter stock symbol or company name (e.g., AAPL, Apple)"
+                                   autocomplete="off"
+                                   value="{{ query if query else '' }}">
+                            
+                            <!-- Search Suggestions Dropdown -->
+                            <div id="searchSuggestions" class="search-suggestions">
+                                <!-- Dynamic suggestions will be inserted here -->
+                            </div>
+
+                            <!-- Loading Spinner -->
+                            <div id="searchLoading" class="search-loading">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg ms-2">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+
+                    <!-- Search Tips -->
+                    <div class="search-tips mb-4">
+                        <small class="text-muted">
+                            <strong>Tips:</strong> 
+                            Try "AAPL" for Apple, "TSLA" for Tesla, or "Microsoft" for company name search
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results Section -->
+        {% if results %}
+        <div class="search-results mb-5">
+            <h3 class="mb-4">Search Results for "{{ query }}"</h3>
+            <div class="row" id="searchResults">
+                {% for stock in results %}
+                <div class="col-md-6 mb-3">
+                    <div class="card stock-result-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title mb-1">
+                                        <a href="{{ url_for('stock.detail', symbol=stock.symbol) }}" 
+                                           class="text-decoration-none">
+                                           {{ stock.symbol }}
+                                        </a>
+                                    </h5>
+                                    <h6 class="card-subtitle text-muted mb-2">{{ stock.name }}</h6>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-outline-primary btn-sm get-quote-btn" 
+                                            data-symbol="{{ stock.symbol }}">
+                                        Get Quote
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif query %}
+        <div class="alert alert-warning" role="alert">
+            <h4 class="alert-heading">No Results Found</h4>
+            <p>No stocks found for "{{ query }}". Try:</p>
+            <ul class="mb-0">
+                <li>Checking the spelling</li>
+                <li>Using the stock symbol instead of company name</li>
+                <li>Searching for a more popular stock</li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Popular Stocks Section -->
+        <div class="popular-stocks mb-5">
+            <h3 class="mb-4">Popular Stocks</h3>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card popular-stock-card" data-symbol="AAPL">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">AAPL</h5>
+                            <p class="card-text">Apple Inc.</p>
+                            <small class="text-muted">Technology</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card popular-stock-card" data-symbol="GOOGL">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">GOOGL</h5>
+                            <p class="card-text">Alphabet Inc.</p>
+                            <small class="text-muted">Technology</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card popular-stock-card" data-symbol="MSFT">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">MSFT</h5>
+                            <p class="card-text">Microsoft Corporation</p>
+                            <small class="text-muted">Technology</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card popular-stock-card" data-symbol="TSLA">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">TSLA</h5>
+                            <p class="card-text">Tesla, Inc.</p>
+                            <small class="text-muted">Automotive</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card popular-stock-card" data-symbol="NVDA">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">NVDA</h5>
+                            <p class="card-text">NVIDIA Corporation</p>
+                            <small class="text-muted">Technology</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card popular-stock-card" data-symbol="AMZN">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">AMZN</h5>
+                            <p class="card-text">Amazon.com Inc.</p>
+                            <small class="text-muted">E-commerce</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Quote Modal -->
+        <div class="modal fade" id="quoteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="quoteModalTitle">Stock Quote</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="quoteModalBody">
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p>Loading quote...</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="#" id="quoteModalDetailBtn" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles for Search Page -->
+<style>
+.search-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    color: white;
+}
+
+.search-container .form-control {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-size: 1.1rem;
+}
+
+.search-container .btn {
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0 0 15px 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-symbol {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.suggestion-name {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.search-loading {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    display: none;
+}
+
+.stock-result-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.stock-result-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.popular-stock-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.popular-stock-card:hover {
+    transform: translateY(-5px);
+    border-color: #007bff;
+    box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+}
+
+.search-tips {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 2rem 1rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}
+</style>
+
+<!-- Include Search JavaScript -->
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}
