@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Stock Header -->
+        <div class="stock-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 mb-2">
+                        {{ stock.symbol }} 
+                        <small class="text-muted">{{ stock.exchange or 'N/A' }}</small>
+                    </h1>
+                    <h3 class="text-muted mb-1">{{ stock.company_name }}</h3>
+                    <p class="mb-0">
+                        {% if stock.sector %}
+                        <span class="badge bg-primary">{{ stock.sector }}</span>
+                        {% endif %}
+                        {% if stock.industry %}
+                        <span class="badge bg-secondary ms-1">{{ stock.industry }}</span>
+                        {% endif %}
+                        {% if stock.country %}
+                        <span class="badge bg-info ms-1">{{ stock.country }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <!-- Price Info -->
+                    <h2 class="mb-1">
+                        ${{ "%.2f"|format(stock.current_price or 0) }}
+                    </h2>
+                    
+                    {% if stock.day_change is not none %}
+                    <p class="{{ 'text-success' if stock.day_change >= 0 else 'text-danger' }} mb-2">
+                        {% if stock.day_change >= 0 %}▲{% else %}▼{% endif %}
+                        ${{ "%.2f"|format(stock.day_change|abs) }}
+                        {% if stock.day_change_percent %}
+                        ({{ "%.2f"|format(stock.day_change_percent) }}%)
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                    
+                    <small class="text-muted">
+                        Last updated: {{ stock.last_updated.strftime('%Y-%m-%d %H:%M') if stock.last_updated else 'Unknown' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    {% if in_watchlist %}
+                    <button class="btn btn-danger" id="removeFromWatchlist" data-symbol="{{ stock.symbol }}">
+                        <i class="fas fa-heart-broken"></i> Remove from Watchlist
+                    </button>
+                    {% else %}
+                    <button class="btn btn-success" id="addToWatchlist" data-symbol="{{ stock.symbol }}">
+                        <i class="fas fa-heart"></i> Add to Watchlist
+                    </button>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-primary ms-2" id="refreshData" data-symbol="{{ stock.symbol }}">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <a href="{{ url_for('stock.compare') }}?symbols={{ stock.symbol }}" class="btn btn-outline-info ms-2">
+                        <i class="fas fa-chart-line"></i> Compare
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Left Column: Key Metrics -->
+            <div class="col-lg-8">
+                <!-- Key Metrics Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">📊 Key Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">Previous Close</small>
+                                    <div class="fw-bold">
+                                        ${{ "%.2f"|format(stock.previous_close or 0) }}
+                                    </div>
+                                </div>
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">Open</small>
+                                    <div class="fw-bold">
+                                        ${{ "%.2f"|format(stock.open_price or 0) }}
+                                    </div>
+                                </div>
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">Day's Range</small>
+                                    <div class="fw-bold">
+                                        ${{ "%.2f"|format(stock.day_low or 0) }} - ${{ "%.2f"|format(stock.day_high or 0) }}
+                                    </div>
+                                </div>
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">52 Week Range</small>
+                                    <div class="fw-bold">
+                                        ${{ "%.2f"|format(stock.fifty_two_week_low or 0) }} - ${{ "%.2f"|format(stock.fifty_two_week_high or 0) }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">Volume</small>
+                                    <div class="fw-bold">
+                                        {{ "{:,}".format(stock.volume or 0) if stock.volume else 'N/A' }}
+                                    </div>
+                                </div>
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">Market Cap</small>
+                                    <div class="fw-bold">
+                                        {% if stock.market_cap %}
+                                            {% if stock.market_cap >= 1000000000000 %}
+                                                ${{ "%.2f"|format(stock.market_cap / 1000000000000) }}T
+                                            {% elif stock.market_cap >= 1000000000 %}
+                                                ${{ "%.2f"|format(stock.market_cap / 1000000000) }}B
+                                            {% elif stock.market_cap >= 1000000 %}
+                                                ${{ "%.2f"|format(stock.market_cap / 1000000) }}M
+                                            {% else %}
+                                                ${{ "{:,.0f}"|format(stock.market_cap) }}
+                                            {% endif %}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">P/E Ratio</small>
+                                    <div class="fw-bold">
+                                        {{ "%.2f"|format(stock.pe_ratio) if stock.pe_ratio else 'N/A' }}
+                                    </div>
+                                </div>
+                                <div class="metric-item mb-3">
+                                    <small class="text-muted">Dividend Yield</small>
+                                    <div class="fw-bold">
+                                        {% if stock.dividend_yield %}
+                                            {{ "%.2f"|format(stock.dividend_yield * 100) }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Placeholder -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">📈 Price Chart</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="priceChart" class="chart-container">
+                            <div class="text-center py-5">
+                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chart functionality coming soon...</p>
+                                <small class="text-muted">Historical price data will be displayed here</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent News Placeholder -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">📰 Recent News</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <i class="fas fa-newspaper fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">News integration coming soon...</p>
+                            <small class="text-muted">Latest news about {{ stock.symbol }} will appear here</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Company Info & Actions -->
+            <div class="col-lg-4">
+                <!-- Company Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">🏢 Company Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Full Name</small>
+                            <div class="fw-bold">{{ stock.company_name }}</div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Symbol</small>
+                            <div class="fw-bold">{{ stock.symbol }}</div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Exchange</small>
+                            <div class="fw-bold">{{ stock.exchange or 'N/A' }}</div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Sector</small>
+                            <div class="fw-bold">{{ stock.sector or 'N/A' }}</div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Industry</small>
+                            <div class="fw-bold">{{ stock.industry or 'N/A' }}</div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Country</small>
+                            <div class="fw-bold">{{ stock.country or 'N/A' }}</div>
+                        </div>
+                        <div class="info-item mb-3">
+                            <small class="text-muted">Currency</small>
+                            <div class="fw-bold">{{ stock.currency or 'USD' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">📊 Performance Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Today's Performance -->
+                        <div class="performance-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Today's Change</span>
+                                <span class="{{ 'text-success' if (stock.day_change or 0) >= 0 else 'text-danger' }}">
+                                    {% if stock.day_change is not none %}
+                                        {{ '▲' if stock.day_change >= 0 else '▼' }}
+                                        ${{ "%.2f"|format(stock.day_change|abs) }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- 52-week performance -->
+                        {% if stock.fifty_two_week_high and stock.fifty_two_week_low and stock.current_price %}
+                        <div class="performance-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">52W High Distance</span>
+                                <span class="{{ 'text-success' if ((stock.current_price - stock.fifty_two_week_high) / stock.fifty_two_week_high * 100) >= -5 else 'text-muted' }}">
+                                    {{ "%.1f"|format((stock.current_price - stock.fifty_two_week_high) / stock.fifty_two_week_high * 100) }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="performance-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">52W Low Distance</span>
+                                <span class="{{ 'text-success' if ((stock.current_price - stock.fifty_two_week_low) / stock.fifty_two_week_low * 100) >= 20 else 'text-muted' }}">
+                                    {{ "%.1f"|format((stock.current_price - stock.fifty_two_week_low) / stock.fifty_two_week_low * 100) }}%
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">⚡ Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" id="setAlert" data-symbol="{{ stock.symbol }}">
+                                <i class="fas fa-bell"></i> Set Price Alert
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" id="viewNews" data-symbol="{{ stock.symbol }}">
+                                <i class="fas fa-newspaper"></i> View News
+                            </button>
+                            <a href="{{ url_for('search.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-search"></i> Search Other Stocks
+                            </a>
+                            <a href="{{ url_for('watchlist.list') }}" class="btn btn-outline-dark btn-sm">
+                                <i class="fas fa-list"></i> View Watchlist
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="loading-spinner mx-auto mb-3"></div>
+        <p>Updating stock data...</p>
+    </div>
+</div>
+
+<!-- Custom Styles were moved to detail.css -->
+
+{% endblock %}
+
+{% block scripts %}
+<!-- JavaScript for Stock Detail Page -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const addToWatchlistBtn = document.getElementById('addToWatchlist');
+    const removeFromWatchlistBtn = document.getElementById('removeFromWatchlist');
+    const refreshBtn = document.getElementById('refreshData');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const setAlertBtn = document.getElementById('setAlert');
+    const viewNewsBtn = document.getElementById('viewNews');
+
+    // Add to watchlist
+    if (addToWatchlistBtn) {
+        addToWatchlistBtn.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            addToWatchlist(symbol);
+        });
+    }
+
+    // Remove from watchlist
+    if (removeFromWatchlistBtn) {
+        removeFromWatchlistBtn.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            removeFromWatchlist(symbol);
+        });
+    }
+
+    // Refresh data
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            refreshStockData(symbol);
+        });
+    }
+
+    // Set price alert
+    if (setAlertBtn) {
+        setAlertBtn.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            alert('Price alert functionality coming soon for ' + symbol + '!');
+        });
+    }
+
+    // View news
+    if (viewNewsBtn) {
+        viewNewsBtn.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            alert('News functionality coming soon for ' + symbol + '!');
+        });
+    }
+
+    // Functions
+    async function addToWatchlist(symbol) {
+        try {
+            setButtonLoading(addToWatchlistBtn, true);
+            
+            const response = await fetch('/watchlist/api/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ symbol: symbol })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                StockApp.utils.showToast('Error: ' + data.error, 'error');
+            } else {
+                StockApp.utils.showToast(data.message, 'success');
+                
+                // Update button
+                addToWatchlistBtn.outerHTML = `
+                    <button class="btn btn-danger" id="removeFromWatchlist" data-symbol="${symbol}">
+                        <i class="fas fa-heart-broken"></i> Remove from Watchlist
+                    </button>
+                `;
+                
+                // Re-attach event listener
+                const newRemoveBtn = document.getElementById('removeFromWatchlist');
+                newRemoveBtn.addEventListener('click', function() {
+                    removeFromWatchlist(symbol);
+                });
+            }
+        } catch (error) {
+            console.error('Error adding to watchlist:', error);
+            StockApp.utils.showToast('Failed to add to watchlist', 'error');
+        } finally {
+            setButtonLoading(addToWatchlistBtn, false);
+        }
+    }
+
+    async function removeFromWatchlist(symbol) {
+        try {
+            setButtonLoading(removeFromWatchlistBtn, true);
+            
+            const response = await fetch('/watchlist/api/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ symbol: symbol })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                StockApp.utils.showToast('Error: ' + data.error, 'error');
+            } else {
+                StockApp.utils.showToast(data.message, 'success');
+                
+                // Update button
+                removeFromWatchlistBtn.outerHTML = `
+                    <button class="btn btn-success" id="addToWatchlist" data-symbol="${symbol}">
+                        <i class="fas fa-heart"></i> Add to Watchlist
+                    </button>
+                `;
+                
+                // Re-attach event listener
+                const newAddBtn = document.getElementById('addToWatchlist');
+                newAddBtn.addEventListener('click', function() {
+                    addToWatchlist(symbol);
+                });
+            }
+        } catch (error) {
+            console.error('Error removing from watchlist:', error);
+            StockApp.utils.showToast('Failed to remove from watchlist', 'error');
+        } finally {
+            setButtonLoading(removeFromWatchlistBtn, false);
+        }
+    }
+
+    async function refreshStockData(symbol) {
+        try {
+            showLoading();
+            setButtonLoading(refreshBtn, true);
+            
+            const response = await fetch(`/stock/api/${symbol}/refresh`);
+            const data = await response.json();
+            
+            if (data.error) {
+                StockApp.utils.showToast('Error: ' + data.error, 'error');
+            } else {
+                StockApp.utils.showToast('Stock data refreshed successfully', 'success');
+                
+                // Reload the page to show updated data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            StockApp.utils.showToast('Failed to refresh data. Please try again.', 'error');
+        } finally {
+            hideLoading();
+            setButtonLoading(refreshBtn, false);
+        }
+    }
+
+    function showLoading() {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+        }
+    }
+
+    function hideLoading() {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    function setButtonLoading(button, isLoading) {
+        if (!button) return;
+        
+        if (isLoading) {
+            button.classList.add('loading');
+            button.disabled = true;
+        } else {
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
+    }
+
+    // Auto-refresh every 30 seconds if market is open
+    if (StockApp.utils.isMarketOpen()) {
+        setInterval(() => {
+            const symbol = refreshBtn?.dataset.symbol;
+            if (symbol) {
+                refreshStockData(symbol);
+            }
+        }, 30000); // 30 seconds
+    }
+});
+</script>
+{% endblock %}

@@ -1,81 +1,49 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
-     {% if title %}
-     <title>{{ title }}</title>
-     {% else %}
-     <title>Stock Analysis Tool</title>
-     {% endif %}
-
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <title>{% block title %}Stock Analysis Tool{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    
+    {% block styles %}{% endblock %}
 </head>
 <body>
+    {% include 'components/navbar.html' %}
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                📈 Stock Analysis Tool
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#" aria-disabled="true">Search (coming soon)</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#" aria-disabled="true">Dashboard (coming soon)</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- main content area -->
-    <main class="container mt-4">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            {% for message in messages %}
-            {{ message }}
-            {% endfor %}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        {% endif %}
+    <main class="container-fluid mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
         {% endwith %}
-        
-        {% block content %}
-        {% endblock %}
+
+        {% block content %}{% endblock %}
     </main>
 
-    <!-- footer area -->
-    <footer class="bg-dark text-light mt-5 py-4">
+    <footer class="footer mt-auto py-3 bg-light">
         <div class="container text-center">
-            <p>&copy; 2025 Stock Analysis Tool. Built with Flask & yfinance.</p>
+            <span class="text-muted">Stock Analysis Tool &copy; 2025</span>
         </div>
     </footer>
 
-    <!-- bootstrap javascript -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
+    {% block scripts %}{% endblock %}
 </body>
 </html>

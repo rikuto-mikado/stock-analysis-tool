@@ -1,0 +1,626 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Page Header -->
+        <div class="watchlist-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 mb-2">
+                        💼 My Watchlist
+                        {% if watchlist_count > 0 %}
+                        <span class="badge bg-primary ms-2">{{ watchlist_count }}</span>
+                        {% endif %}
+                    </h1>
+                    <p class="lead mb-0">Track your favorite stocks and monitor their performance</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('search.index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Stocks
+                    </a>
+                    <a href="{{ url_for('watchlist.manage') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-cog"></i> Manage
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        {% if not watchlist or watchlist_count == 0 %}
+        <div class="empty-watchlist text-center py-5">
+            <div class="empty-icon mb-4">
+                <i class="fas fa-chart-line fa-4x text-muted"></i>
+            </div>
+            <h3 class="text-muted">Your Watchlist is Empty</h3>
+            <p class="lead text-muted mb-4">Start building your portfolio by adding stocks to track</p>
+            <div class="empty-actions">
+                <a href="{{ url_for('search.index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Search Stocks
+                </a>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        Popular stocks: 
+                        <a href="{{ url_for('stock.detail', symbol='AAPL') }}" class="text-decoration-none">AAPL</a>, 
+                        <a href="{{ url_for('stock.detail', symbol='GOOGL') }}" class="text-decoration-none">GOOGL</a>, 
+                        <a href="{{ url_for('stock.detail', symbol='MSFT') }}" class="text-decoration-none">MSFT</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+
+        <!-- Watchlist Summary -->
+        <div class="watchlist-summary mb-4">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card summary-card">
+                        <div class="card-body text-center">
+                            <div class="summary-icon">
+                                <i class="fas fa-list text-primary"></i>
+                            </div>
+                            <h4 class="mb-1">{{ watchlist_count }}</h4>
+                            <small class="text-muted">Total Stocks</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card summary-card">
+                        <div class="card-body text-center">
+                            <div class="summary-icon">
+                                <i class="fas fa-heart text-danger"></i>
+                            </div>
+                            <h4 class="mb-1">{{ watchlist|selectattr('is_favorite')|list|length }}</h4>
+                            <small class="text-muted">Favorites</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card summary-card">
+                        <div class="card-body text-center">
+                            <div class="summary-icon">
+                                <i class="fas fa-bell text-warning"></i>
+                            </div>
+                            <h4 class="mb-1">{{ watchlist|selectattr('price_alert_enabled')|list|length }}</h4>
+                            <small class="text-muted">With Alerts</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card summary-card">
+                        <div class="card-body text-center">
+                            <div class="summary-icon">
+                                <i class="fas fa-chart-up text-success"></i>
+                            </div>
+                            <h4 class="mb-1">{{ (watchlist|selectattr('performance')|selectattr('performance.total_return', '>', 0)|list|length if watchlist else 0) }}</h4>
+                            <small class="text-muted">Gaining</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter and Sort Options -->
+        <div class="filter-bar mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="filter" id="filterAll" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="filterAll">All</label>
+                        
+                        <input type="radio" class="btn-check" name="filter" id="filterFavorites" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="filterFavorites">Favorites</label>
+                        
+                        <input type="radio" class="btn-check" name="filter" id="filterGainers" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="filterGainers">Gainers</label>
+                        
+                        <input type="radio" class="btn-check" name="filter" id="filterLosers" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="filterLosers">Losers</label>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <select class="form-select" id="sortBy" style="width: auto; display: inline-block;">
+                        <option value="default">Default Order</option>
+                        <option value="symbol">Symbol (A-Z)</option>
+                        <option value="price">Price (High to Low)</option>
+                        <option value="change">Change %</option>
+                        <option value="added">Recently Added</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Watchlist Grid -->
+        <div id="watchlistGrid" class="watchlist-grid">
+            {% for stock in watchlist %}
+            <div class="watchlist-item" 
+                 data-symbol="{{ stock.symbol }}" 
+                 data-is-favorite="{{ stock.is_favorite|lower }}"
+                 data-change="{{ stock.day_change or 0 }}"
+                 data-added="{{ stock.added_at }}">
+                
+                <div class="card stock-card h-100">
+                    <div class="card-body">
+                        <!-- Stock Header -->
+                        <div class="stock-header d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">
+                                    <a href="{{ url_for('stock.detail', symbol=stock.symbol) }}" 
+                                       class="text-decoration-none">
+                                        {{ stock.symbol }}
+                                    </a>
+                                    {% if stock.is_favorite %}
+                                    <i class="fas fa-heart text-danger ms-1" title="Favorite"></i>
+                                    {% endif %}
+                                </h5>
+                                <h6 class="card-subtitle text-muted">{{ stock.company_name[:30] }}...</h6>
+                                <small class="text-muted">{{ stock.sector or 'N/A' }}</small>
+                            </div>
+                            <div class="stock-actions">
+                                <div class="dropdown">
+                                    <button class="btn btn-link btn-sm" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('stock.detail', symbol=stock.symbol) }}">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item toggle-favorite" data-watchlist-id="{{ stock.watchlist_id }}">
+                                                <i class="fas fa-heart"></i> 
+                                                {% if stock.is_favorite %}Remove from{% else %}Add to{% endif %} Favorites
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item edit-notes" data-watchlist-id="{{ stock.watchlist_id }}">
+                                                <i class="fas fa-sticky-note"></i> Edit Notes
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button class="dropdown-item text-danger remove-stock" data-watchlist-id="{{ stock.watchlist_id }}" data-symbol="{{ stock.symbol }}">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Information -->
+                        <div class="price-info mb-3">
+                            <div class="current-price">
+                                <h4 class="mb-1">
+                                    ${{ "%.2f"|format(stock.current_price or 0) }}
+                                </h4>
+                                {% if stock.day_change is not none %}
+                                <p class="{{ 'text-success' if stock.day_change >= 0 else 'text-danger' }} mb-0">
+                                    {{ '▲' if stock.day_change >= 0 else '▼' }}
+                                    ${{ "%.2f"|format(stock.day_change|abs) }}
+                                    {% if stock.day_change_percent %}
+                                    ({{ "%.2f"|format(stock.day_change_percent) }}%)
+                                    {% endif %}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Watchlist Specific Info -->
+                        <div class="watchlist-info">
+                            {% if stock.performance %}
+                            <div class="performance-info mb-2">
+                                <small class="text-muted">Since Added ({{ stock.days_in_watchlist }} days):</small>
+                                <div class="{{ 'text-success' if stock.performance.total_return >= 0 else 'text-danger' }}">
+                                    <strong>{{ "%.2f"|format(stock.performance.total_return) }}%</strong>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if stock.target_price %}
+                            <div class="target-info mb-2">
+                                <small class="text-muted">Target: ${{ "%.2f"|format(stock.target_price) }}</small>
+                                {% set target_diff = ((stock.target_price - (stock.current_price or 0)) / (stock.current_price or 1)) * 100 %}
+                                <small class="{{ 'text-success' if target_diff > 0 else 'text-danger' }}">
+                                    ({{ "%.1f"|format(target_diff|abs) }}% to go)
+                                </small>
+                            </div>
+                            {% endif %}
+
+                            {% if stock.notes %}
+                            <div class="notes-info">
+                                <small class="text-muted">
+                                    <i class="fas fa-sticky-note"></i>
+                                    {{ stock.notes[:50] }}{% if stock.notes|length > 50 %}...{% endif %}
+                                </small>
+                            </div>
+                            {% endif %}
+
+                            {% if stock.price_alert_enabled %}
+                            <div class="alert-info mt-2">
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-bell"></i> Alert Enabled
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer bg-transparent">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted">Volume</small>
+                                <div class="fw-bold small">{{ "{:,}".format(stock.volume or 0) if stock.volume else 'N/A' }}</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">Market Cap</small>
+                                <div class="fw-bold small">{{ stock.formatted_market_cap or 'N/A' }}</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">P/E</small>
+                                <div class="fw-bold small">{{ "%.1f"|format(stock.pe_ratio) if stock.pe_ratio else 'N/A' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Notes Modal -->
+<div class="modal fade" id="editNotesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editNotesForm">
+                    <div class="mb-3">
+                        <label for="stockNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="stockNotes" rows="4" 
+                                  placeholder="Add your notes about this stock..."></textarea>
+                        <div class="form-text">Maximum 500 characters</div>
+                    </div>
+                    <input type="hidden" id="editWatchlistId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveNotesBtn">Save Notes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.watchlist-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+}
+
+.summary-card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+}
+
+.summary-icon i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.filter-bar {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.watchlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.stock-card {
+    border: none;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border-radius: 12px;
+}
+
+.stock-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stock-header h5 a {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.stock-header h5 a:hover {
+    color: #007bff;
+}
+
+.price-info h4 {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.performance-info, .target-info, .notes-info {
+    padding: 0.25rem 0;
+}
+
+.empty-watchlist {
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin: 2rem 0;
+}
+
+.empty-icon {
+    opacity: 0.5;
+}
+
+.watchlist-item[data-is-favorite="true"] .card {
+    border-left: 4px solid #dc3545;
+}
+
+@media (max-width: 768px) {
+    .watchlist-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .watchlist-header {
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .filter-bar .row {
+        text-align: center;
+    }
+    
+    .filter-bar .btn-group {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading states */
+.watchlist-item.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Animation for new items */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.watchlist-item {
+    animation: slideInUp 0.5s ease;
+}
+</style>
+
+<!-- JavaScript for Watchlist Functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const watchlistGrid = document.getElementById('watchlistGrid');
+    const editNotesModal = new bootstrap.Modal(document.getElementById('editNotesModal'));
+    
+    // Filter functionality
+    const filterButtons = document.querySelectorAll('input[name="filter"]');
+    const sortSelect = document.getElementById('sortBy');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('change', filterWatchlist);
+    });
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortWatchlist);
+    }
+    
+    // Remove stock functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-stock')) {
+            const btn = e.target.closest('.remove-stock');
+            const symbol = btn.dataset.symbol;
+            const watchlistId = btn.dataset.watchlistId;
+            
+            if (confirm(`Remove ${symbol} from watchlist?`)) {
+                removeFromWatchlist(watchlistId, symbol);
+            }
+        }
+    });
+    
+    // Toggle favorite functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.toggle-favorite')) {
+            const btn = e.target.closest('.toggle-favorite');
+            const watchlistId = btn.dataset.watchlistId;
+            toggleFavorite(watchlistId);
+        }
+    });
+    
+    // Edit notes functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.edit-notes')) {
+            const btn = e.target.closest('.edit-notes');
+            const watchlistId = btn.dataset.watchlistId;
+            showEditNotesModal(watchlistId);
+        }
+    });
+    
+    // Save notes
+    document.getElementById('saveNotesBtn').addEventListener('click', saveNotes);
+    
+    async function removeFromWatchlist(watchlistId, symbol) {
+        try {
+            const response = await fetch('/watchlist/api/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ watchlist_id: watchlistId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                // Remove the item from the grid
+                const item = document.querySelector(`[data-watchlist-id="${watchlistId}"]`).closest('.watchlist-item');
+                item.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => item.remove(), 300);
+                
+                StockApp.utils.showToast(data.message, 'success');
+                
+                // Update summary if needed
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error removing from watchlist:', error);
+            alert('Failed to remove from watchlist');
+        }
+    }
+    
+    async function toggleFavorite(watchlistId) {
+        try {
+            const response = await fetch('/watchlist/api/toggle-favorite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ watchlist_id: watchlistId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                StockApp.utils.showToast(data.message, 'success');
+                // Reload to update UI
+                setTimeout(() => location.reload(), 500);
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            alert('Failed to update favorite status');
+        }
+    }
+    
+    function showEditNotesModal(watchlistId) {
+        document.getElementById('editWatchlistId').value = watchlistId;
+        document.getElementById('stockNotes').value = '';
+        editNotesModal.show();
+    }
+    
+    async function saveNotes() {
+        const watchlistId = document.getElementById('editWatchlistId').value;
+        const notes = document.getElementById('stockNotes').value;
+        
+        try {
+            const response = await fetch('/watchlist/api/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    watchlist_id: watchlistId,
+                    notes: notes 
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                editNotesModal.hide();
+                StockApp.utils.showToast('Notes updated successfully', 'success');
+                setTimeout(() => location.reload(), 500);
+            }
+        } catch (error) {
+            console.error('Error saving notes:', error);
+            alert('Failed to save notes');
+        }
+    }
+    
+    function filterWatchlist() {
+        const activeFilter = document.querySelector('input[name="filter"]:checked').id;
+        const items = document.querySelectorAll('.watchlist-item');
+        
+        items.forEach(item => {
+            let show = true;
+            
+            switch (activeFilter) {
+                case 'filterFavorites':
+                    show = item.dataset.isFavorite === 'true';
+                    break;
+                case 'filterGainers':
+                    show = parseFloat(item.dataset.change) > 0;
+                    break;
+                case 'filterLosers':
+                    show = parseFloat(item.dataset.change) < 0;
+                    break;
+                default:
+                    show = true;
+            }
+            
+            item.style.display = show ? 'block' : 'none';
+        });
+    }
+    
+    function sortWatchlist() {
+        const sortBy = sortSelect.value;
+        const items = Array.from(document.querySelectorAll('.watchlist-item'));
+        
+        items.sort((a, b) => {
+            switch (sortBy) {
+                case 'symbol':
+                    return a.dataset.symbol.localeCompare(b.dataset.symbol);
+                case 'price':
+                    const priceA = parseFloat(a.querySelector('.price-info h4').textContent.replace('$', ''));
+                    const priceB = parseFloat(b.querySelector('.price-info h4').textContent.replace('$', ''));
+                    return priceB - priceA;
+                case 'change':
+                    return parseFloat(b.dataset.change) - parseFloat(a.dataset.change);
+                case 'added':
+                    return new Date(b.dataset.added) - new Date(a.dataset.added);
+                default:
+                    return 0;
+            }
+        });
+        
+        // Re-append sorted items
+        items.forEach(item => watchlistGrid.appendChild(item));
+    }
+});
+
+// CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(0.8); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
