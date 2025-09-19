@@ -1,29 +1,270 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="row">
-    <div class="col-md-8 mx-auto">
-        <!-- page title -->
-        {% if page_title %}
-
-        <h1 class="display-4 text-center mb-4">{{ page_title }}</h1>
-
-        {% else %}
-
-            <h1 class="display-4 text-center mb-4">📈 Stock Analysis Tool</h1>
-
-        {% endif %}
-
-        <!-- message (about page) -->
-        {% if message %}
-        <div class="alert alert-primary" role="alert">
-            <h4 class="alert-heading">Welcome!!</h4>
-            <p>{{ message }}</p>
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="hero-section mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-3 fw-bold mb-3">
+                        📈 Stock Analysis Tool
+                    </h1>
+                    <p class="lead mb-4">
+                        Track, analyze, and monitor your favorite stocks with real-time data, 
+                        powerful analytics, and personalized watchlists. Make informed investment 
+                        decisions with our comprehensive stock analysis platform.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-chart-bar"></i> View Dashboard
+                        </a>
+                        <a href="{{ url_for('search.index') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-search"></i> Search Stocks
+                        </a>
+                    </div>
+                    <div class="hero-stats mt-4">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <h3 class="text-primary mb-1">{{ watchlist_count or 0 }}</h3>
+                                    <small class="text-muted">Stocks Tracked</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <h3 class="text-success mb-1">Real-time</h3>
+                                    <small class="text-muted">Data Updates</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <h3 class="text-info mb-1">Free</h3>
+                                    <small class="text-muted">To Use</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-visual">
+                        <div class="stock-cards-demo">
+                            <!-- Demo stock cards -->
+                            <div class="demo-card card-1">
+                                <div class="demo-stock">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">AAPL</h6>
+                                            <small class="text-muted">Apple Inc.</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold">$150.25</div>
+                                            <small class="text-success">▲ +1.45%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="demo-card card-2">
+                                <div class="demo-stock">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">GOOGL</h6>
+                                            <small class="text-muted">Alphabet Inc.</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold">$2,850.75</div>
+                                            <small class="text-success">▲ +0.87%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="demo-card card-3">
+                                <div class="demo-stock">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">TSLA</h6>
+                                            <small class="text-muted">Tesla, Inc.</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold">$248.50</div>
+                                            <small class="text-danger">▼ -2.15%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
 
-        <!-- main content of home page -->
-        {% if not page_title %}
-        {% endif %}
+        <!-- Features Section -->
+        <div class="features-overview mb-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 mb-3">🚀 Everything You Need</h2>
+                <p class="lead text-muted">
+                    Powerful tools and features to help you make better investment decisions
+                </p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card h-100">
+                        <div class="feature-icon">
+                            <i class="fas fa-search fa-2x text-primary"></i>
+                        </div>
+                        <h4 class="mb-3">Smart Stock Search</h4>
+                        <p class="text-muted mb-4">
+                            Search stocks by symbol or company name with intelligent suggestions 
+                            and instant results. Get detailed information at your fingertips.
+                        </p>
+                        <a href="{{ url_for('search.index') }}" class="btn btn-outline-primary">
+                            Try Search <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card h-100">
+                        <div class="feature-icon">
+                            <i class="fas fa-heart fa-2x text-danger"></i>
+                        </div>
+                        <h4 class="mb-3">Personal Watchlist</h4>
+                        <p class="text-muted mb-4">
+                            Create and manage personalized watchlists to track your favorite stocks. 
+                            Set alerts, add notes, and monitor performance over time.
+                        </p>
+                        <a href="{{ url_for('watchlist.list') }}" class="btn btn-outline-danger">
+                            View Watchlist <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="feature-card h-100">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line fa-2x text-success"></i>
+                        </div>
+                        <h4 class="mb-3">Real-time Analytics</h4>
+                        <p class="text-muted mb-4">
+                            Get comprehensive dashboard with real-time price updates, performance 
+                            analytics, and market insights to stay informed about your investments.
+                        </p>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-success">
+                            Open Dashboard <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Stocks Section -->
+        <div class="popular-stocks-section mb-5">
+            <div class="text-center mb-4">
+                <h2 class="display-6 mb-3">📊 Popular Stocks</h2>
+                <p class="text-muted">Start with these commonly tracked stocks</p>
+            </div>
+            
+            <div class="row">
+                {% set popular_stocks = [
+                    {'symbol': 'AAPL', 'name': 'Apple Inc.', 'sector': 'Technology'},
+                    {'symbol': 'GOOGL', 'name': 'Alphabet Inc.', 'sector': 'Technology'},
+                    {'symbol': 'MSFT', 'name': 'Microsoft Corp.', 'sector': 'Technology'},
+                    {'symbol': 'AMZN', 'name': 'Amazon.com Inc.', 'sector': 'E-commerce'},
+                    {'symbol': 'TSLA', 'name': 'Tesla, Inc.', 'sector': 'Automotive'},
+                    {'symbol': 'NVDA', 'name': 'NVIDIA Corp.', 'sector': 'Technology'}
+                ] %}
+                
+                {% for stock in popular_stocks %}
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="popular-stock-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">{{ stock.symbol }}</h5>
+                                    <h6 class="card-subtitle text-muted mb-2">{{ stock.name }}</h6>
+                                    <span class="badge bg-light text-dark">{{ stock.sector }}</span>
+                                </div>
+                                <div class="stock-actions">
+                                    <a href="{{ url_for('stock.detail', symbol=stock.symbol) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Start Guide -->
+        <div class="quick-start-section mb-5">
+            <div class="card bg-gradient">
+                <div class="card-body text-center">
+                    <h2 class="card-title text-white mb-4">🎯 Quick Start Guide</h2>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="quick-step">
+                                <div class="step-number">1</div>
+                                <h5 class="text-white">Search</h5>
+                                <p class="text-white-50">Find stocks by symbol or company name</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="quick-step">
+                                <div class="step-number">2</div>
+                                <h5 class="text-white">Add</h5>
+                                <p class="text-white-50">Add interesting stocks to your watchlist</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="quick-step">
+                                <div class="step-number">3</div>
+                                <h5 class="text-white">Track</h5>
+                                <p class="text-white-50">Monitor performance and set alerts</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="quick-step">
+                                <div class="step-number">4</div>
+                                <h5 class="text-white">Analyze</h5>
+                                <p class="text-white-50">Use insights to make informed decisions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{{ url_for('search.index') }}" class="btn btn-light btn-lg">
+                            Get Started Now <i class="fas fa-rocket"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="cta-section">
+            <div class="text-center">
+                <h2 class="mb-3">Ready to start tracking stocks?</h2>
+                <p class="lead text-muted mb-4">
+                    Join thousands of users who trust our platform for their investment research
+                </p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('search.index') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-search"></i> Start Searching
+                    </a>
+                    <a href="{{ url_for('main.about') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-info-circle"></i> Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+{% endblock %}

@@ -1,7 +1,5 @@
-/**
- * Main JavaScript file for Stock Analysis Tool
- * Contains common utilities and global functionality
- */
+// Main JavaScript file for Stock Analysis Tool
+// Contains common utilities and global functionality
 
 // Global app configuration
 window.StockApp = {
@@ -28,12 +26,10 @@ window.StockApp = {
 // Common utility functions
 window.StockApp.utils = {
     
-    /**
-     * Format currency value
-     * @param {number} amount - Amount to format
-     * @param {string} currency - Currency code (default: USD)
-     * @returns {string} Formatted currency string
-     */
+    // Format currency value
+    // @param {number} amount - Amount to format
+    // @param {string} currency - Currency code (default: USD)
+    // @returns {string} Formatted currency string
     formatCurrency: function(amount, currency = 'USD') {
         if (amount === null || amount === undefined || isNaN(amount)) {
             return 'N/A';
@@ -47,12 +43,10 @@ window.StockApp.utils = {
         }).format(amount);
     },
 
-    /**
-     * Format percentage value
-     * @param {number} value - Percentage value
-     * @param {number} decimals - Number of decimal places
-     * @returns {string} Formatted percentage string
-     */
+    // Format percentage value
+    // @param {number} value - Percentage value
+    // @param {number} decimals - Number of decimal places
+    // @returns {string} Formatted percentage string
     formatPercentage: function(value, decimals = 2) {
         if (value === null || value === undefined || isNaN(value)) {
             return 'N/A';
@@ -61,11 +55,9 @@ window.StockApp.utils = {
         return value.toFixed(decimals) + '%';
     },
 
-    /**
-     * Format large numbers with K, M, B suffixes
-     * @param {number} number - Number to format
-     * @returns {string} Formatted number string
-     */
+    // Format large numbers with K, M, B suffixes
+    // @param {number} number - Number to format
+    // @returns {string} Formatted number string
     formatLargeNumber: function(number) {
         if (number === null || number === undefined || isNaN(number)) {
             return 'N/A';
@@ -87,11 +79,9 @@ window.StockApp.utils = {
         }
     },
 
-    /**
-     * Get CSS class for price change
-     * @param {number} change - Price change value
-     * @returns {string} CSS class name
-     */
+    // Get CSS class for price change
+    // @param {number} change - Price change value
+    // @returns {string} CSS class name
     getChangeClass: function(change) {
         if (change === null || change === undefined || isNaN(change)) {
             return 'text-muted';
@@ -106,11 +96,9 @@ window.StockApp.utils = {
         }
     },
 
-    /**
-     * Get change arrow icon
-     * @param {number} change - Price change value
-     * @returns {string} Arrow icon
-     */
+    // Get change arrow icon
+    // @param {number} change - Price change value
+    // @returns {string} Arrow icon
     getChangeArrow: function(change) {
         if (change > 0) {
             return '▲';
@@ -121,12 +109,10 @@ window.StockApp.utils = {
         }
     },
 
-    /**
-     * Debounce function
-     * @param {Function} func - Function to debounce
-     * @param {number} wait - Wait time in milliseconds
-     * @returns {Function} Debounced function
-     */
+    // Debounce function
+    // @param {Function} func - Function to debounce
+    // @param {number} wait - Wait time in milliseconds
+    // @returns {Function} Debounced function
     debounce: function(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -139,10 +125,8 @@ window.StockApp.utils = {
         };
     },
 
-    /**
-     * Show loading spinner
-     * @param {string} containerId - Container element ID
-     */
+    // Show loading spinner
+    // @param {string} containerId - Container element ID
     showLoading: function(containerId = 'main') {
         const container = document.getElementById(containerId);
         if (container) {
@@ -160,9 +144,7 @@ window.StockApp.utils = {
         StockApp.state.isLoading = true;
     },
 
-    /**
-     * Hide loading spinner
-     */
+    // Hide loading spinner
     hideLoading: function() {
         const loading = document.getElementById('globalLoading');
         if (loading) {
@@ -171,12 +153,10 @@ window.StockApp.utils = {
         StockApp.state.isLoading = false;
     },
 
-    /**
-     * Show toast notification
-     * @param {string} message - Message to show
-     * @param {string} type - Toast type (success, error, warning, info)
-     * @param {number} duration - Duration in milliseconds
-     */
+    // Show toast notification
+    // @param {string} message - Message to show
+    // @param {string} type - Toast type (success, error, warning, info)
+    // @param {number} duration - Duration in milliseconds
     showToast: function(message, type = 'info', duration = 3000) {
         // Remove existing toasts
         const existingToasts = document.querySelectorAll('.custom-toast');
@@ -213,11 +193,9 @@ window.StockApp.utils = {
         }, duration);
     },
 
-    /**
-     * Validate stock symbol
-     * @param {string} symbol - Stock symbol to validate
-     * @returns {boolean} True if valid
-     */
+    // Validate stock symbol
+    // @param {string} symbol - Stock symbol to validate
+    // @returns {boolean} True if valid
     isValidSymbol: function(symbol) {
         if (!symbol || typeof symbol !== 'string') {
             return false;
@@ -227,11 +205,9 @@ window.StockApp.utils = {
         return /^[A-Z0-9]{1,6}$/.test(cleanSymbol) && /^[A-Z]/.test(cleanSymbol);
     },
 
-    /**
-     * Format date for display
-     * @param {Date|string} date - Date to format
-     * @returns {string} Formatted date string
-     */
+    // Format date for display
+    // @param {Date|string} date - Date to format
+    // @returns {string} Formatted date string
     formatDate: function(date) {
         if (!date) return 'N/A';
         
@@ -247,10 +223,8 @@ window.StockApp.utils = {
         });
     },
 
-    /**
-     * Check if market is open (simplified)
-     * @returns {boolean} True if market appears to be open
-     */
+    // Check if market is open (simplified)
+    // @returns {boolean} True if market appears to be open
     isMarketOpen: function() {
         const now = new Date();
         const day = now.getDay(); // 0 = Sunday, 6 = Saturday
@@ -273,12 +247,10 @@ window.StockApp.utils = {
 // API helper functions
 window.StockApp.api = {
     
-    /**
-     * Make API request with error handling
-     * @param {string} url - API endpoint
-     * @param {Object} options - Fetch options
-     * @returns {Promise} API response
-     */
+    // Make API request with error handling
+    // @param {string} url - API endpoint
+    // @param {Object} options - Fetch options
+    // @returns {Promise} API response
     request: async function(url, options = {}) {
         try {
             const response = await fetch(url, {
@@ -302,29 +274,23 @@ window.StockApp.api = {
         }
     },
 
-    /**
-     * Get stock quote
-     * @param {string} symbol - Stock symbol
-     * @returns {Promise} Stock data
-     */
+    // Get stock quote
+    // @param {string} symbol - Stock symbol
+    // @returns {Promise} Stock data
     getStock: async function(symbol) {
         return this.request(`/search/api/quote/${symbol}`);
     },
 
-    /**
-     * Refresh stock data
-     * @param {string} symbol - Stock symbol
-     * @returns {Promise} Updated stock data
-     */
+    // Refresh stock data
+    // @param {string} symbol - Stock symbol
+    // @returns {Promise} Updated stock data
     refreshStock: async function(symbol) {
         return this.request(`/stock/api/${symbol}/refresh`);
     },
 
-    /**
-     * Search stocks
-     * @param {string} query - Search query
-     * @returns {Promise} Search results
-     */
+    // Search stocks
+    // @param {string} query - Search query
+    // @returns {Promise} Search results
     searchStocks: async function(query) {
         return this.request(`/search/api/suggestions?q=${encodeURIComponent(query)}`);
     }
@@ -333,11 +299,9 @@ window.StockApp.api = {
 // Watchlist functionality
 window.StockApp.watchlist = {
     
-    /**
-     * Add stock to watchlist
-     * @param {string} symbol - Stock symbol
-     * @returns {Promise} Result
-     */
+    //Add stock to watchlist
+    // @param {string} symbol - Stock symbol
+    //@returns {Promise} Result
     add: async function(symbol) {
         try {
             const result = await StockApp.api.request('/watchlist/api/add', {
@@ -353,11 +317,9 @@ window.StockApp.watchlist = {
         }
     },
 
-    /**
-     * Remove stock from watchlist
-     * @param {string} symbol - Stock symbol
-     * @returns {Promise} Result
-     */
+    // Remove stock from watchlist
+    // @param {string} symbol - Stock symbol
+    // @returns {Promise} Result
     remove: async function(symbol) {
         try {
             const result = await StockApp.api.request('/watchlist/api/remove', {
@@ -373,10 +335,7 @@ window.StockApp.watchlist = {
         }
     },
 
-    /**
-     * Get user's watchlist
-     * @returns {Promise} Watchlist data
-     */
+    // Get user's watchlist
     get: async function() {
         return StockApp.api.request('/watchlist/api/list');
     }
